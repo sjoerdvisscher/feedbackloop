@@ -1,8 +1,10 @@
-<body>
-  <canvas id="output" width="512" height="512" style="border:1px solid black"></canvas>
+<html>
+  <body>
+  <canvas id="output" width="1024" height="1024"></canvas>
+  <video id="video" autoplay="autoplay"></video>
 </body>
 <script>
-var SIZE = 1024;
+var SIZE = 2048;
 function createCanvas()
 {
   var canvas = document.createElement("canvas");
@@ -37,7 +39,7 @@ DrawNode.prototype.draw = function()
   for (var i = 0; i < this.subNodes.length; i++)
   {
     this.ctx.save();
-    this.ctx.globalAlpha = 0.9;
+    this.ctx.globalAlpha = 0.95;
     this.ctx.transform.apply(this.ctx, this.subNodes[i].matrix);
     this.ctx.drawImage(this.subNodes[i].node.draw(), 0, 0, SIZE, SIZE);
     this.ctx.restore();
@@ -68,10 +70,29 @@ square.draw = function()
   return this.canvas;
 }
 
+var video = {
+  draw: function()
+  {
+    if (!this.video)
+    {
+      this.video = document.createElement("video");
+      this.video.autoplay = true;
+      var me = this;
+      navigator.webkitGetUserMedia({video: true}, function(stream)
+      {
+        me.video.src = window.webkitURL.createObjectURL(stream);
+      })
+    }
+    return this.video;
+  }
+}
+
 var root = new DrawNode();
-root.addSubNode(square, [0.1, 0, 0, 0.1, 512 - 50, 600]);
-root.addSubNode(root, [0.8*0.8, 0.6*0.8, -0.6*0.8, 0.8*0.8, 540, -120]);
-root.addSubNode(root, [0.6*0.6, -0.8*0.6, 0.8*0.6, 0.6*0.6, -40, 570]);
+var tree = new DrawNode();
+root.addSubNode(tree, [1.5, 0, 0, 1.5, -700, -500]);
+tree.addSubNode(video, [0.1, 0, 0, 0.1, 1024 - 100, 1200]);
+tree.addSubNode(tree, [0.8*0.8, 0.6*0.8, -0.6*0.8, 0.8*0.8, 1080, -240]);
+tree.addSubNode(tree, [0.6*0.6, -0.8*0.6, 0.8*0.6, 0.6*0.6, -80, 1140]);
 var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
                             window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 
@@ -81,7 +102,8 @@ function step()
 { 
   ctx.clearRect(0, 0, SIZE, SIZE);
   ctx.drawImage(root.draw(), -SIZE/4, -SIZE/4, SIZE, SIZE);
-  requestAnimationFrame(step);
+  setTimeout(step, 50);
 }
-requestAnimationFrame(step);
+setTimeout(step, 50);
 </script>
+</html>
